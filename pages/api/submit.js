@@ -42,7 +42,7 @@ async function generateInsight(data) {
 
   const goalDescription = buildGoalDescription(data);
 
-  const systemPrompt = `You are writing a personalised insight card for someone who just confirmed their fitness goal in FITYUGA, a 7-month company wellness challenge at SCM YUGA Technologies.
+  const systemPrompt = `You are writing a personalised insight card for someone who just confirmed their fitness goal in FITYUGA, a company wellness challenge at SCM YUGA Technologies running from July to December 31st, with check-ins every two months.
 
 Write ONE punchy, evidence-flavoured insight tied directly to their exact numbers. Reference a real, plausible health/fitness research finding specific to their goal type (weight loss/gain, push-up/pull-up strength, or running endurance). Make it feel personal and exciting, not generic. Include their specific numbers in the headline.
 
@@ -88,7 +88,7 @@ Respond ONLY with valid JSON in this exact format, no markdown, no preamble:
 
 function buildGoalDescription(data) {
   if (data.goal_path === 'Weight') {
-    return `${data.w_direction}. Current weight: ${data.weight}. Target weight: ${data.w_target}. Timeline: ${data.w_deadline || 'standard 7-month program'}.`;
+    return `${data.w_direction}. Current weight: ${data.weight}. Target weight: ${data.w_target}. Timeline: ${data.w_deadline || 'December 31st'}.`;
   }
   if (data.goal_path === 'Strength') {
     return `Focus: ${data.s_focus_text}. Current push-ups: ${data.s_pushups_text}. Current pull-ups: ${data.s_pullups_text}. Target: ${data.s_target}.`;
@@ -104,7 +104,7 @@ function fallbackInsight(goalPath) {
     Weight: {
       icon: '⚡', eyebrow: 'Your health upside',
       headline: 'Every kilogram lost is a step toward a longer life',
-      body: 'Losing even 5-10% of body weight slashes type 2 diabetes risk by up to 58%. Your 7-month timeline gives your body exactly the time it needs to make this change permanent, not just a blip on the scale.',
+      body: 'Losing even 5-10% of body weight slashes type 2 diabetes risk by up to 58%. Your July-to-December deadline gives your body exactly the time it needs to make this change permanent, not just a blip on the scale.',
       key_stat: { value: '58%', label: 'lower type 2 diabetes risk' },
       fun_fact: 'People who set a specific weight target are 42% more likely to achieve their goal than those with only a vague intention.',
     },
@@ -126,7 +126,7 @@ function fallbackInsight(goalPath) {
   return fallbacks[goalPath] || {
     icon: '🎯', eyebrow: 'Your goal',
     headline: 'Every goal here moves the needle',
-    body: "Consistent effort over 7 months produces real, lasting change — whatever you're working toward.",
+    body: "Consistent effort from July to December 31st produces real, lasting change — whatever you're working toward.",
     key_stat: { value: '3x', label: 'more likely to succeed in a group challenge' },
     fun_fact: 'People who join a structured group challenge are 3x more likely to hit their fitness goal than those going it alone.',
   };
