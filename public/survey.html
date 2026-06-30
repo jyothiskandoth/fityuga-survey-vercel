@@ -118,6 +118,60 @@
     main { padding: 2rem 1rem 5rem; }
     .hero-stats { flex-direction: column; }
   }
+
+  /* ── BENTO RESULTS GRID ───────────────────────────── */
+  .results-bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+  .bento-full { grid-column: 1 / -1; }
+  .bento-card { border-radius: 14px; padding: 1.4rem 1.5rem; }
+  .bento-dark { background: var(--navy3); }
+  .bento-light { background: linear-gradient(135deg, rgba(245,194,0,0.09), rgba(245,194,0,0.02)); border: 1.5px solid var(--gold-border); }
+  .bento-eyebrow { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold); margin-bottom: 10px; }
+  .bento-light .bento-eyebrow { color: var(--gold-hover); }
+  .bento-goal-title { font-family: 'Clash Grotesk', sans-serif; font-size: 1.05rem; font-weight: 600; color: #fff; margin-bottom: 12px; line-height: 1.3; }
+  .bento-rows { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; }
+  .bento-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.79rem; gap: 8px; }
+  .bento-row:last-child { border-bottom: none; }
+  .bento-row-label { color: rgba(255,255,255,0.45); flex-shrink: 0; }
+  .bento-row-val { color: #fff; font-weight: 500; text-align: right; }
+
+  /* ── BMI CARD ─────────────────────────────────────── */
+  .bmi-num { font-family: 'Clash Grotesk', sans-serif; font-size: 3.2rem; font-weight: 700; color: #fff; line-height: 1; margin-bottom: 6px; }
+  .bmi-cat { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin-bottom: 16px; }
+  .bmi-bar-track { position: relative; height: 8px; border-radius: 4px; overflow: visible; margin-bottom: 5px; }
+  .bmi-bar-segs { display: flex; height: 100%; border-radius: 4px; overflow: hidden; }
+  .bmi-bar-seg { height: 100%; }
+  .bmi-bar-seg:first-child { border-radius: 4px 0 0 4px; }
+  .bmi-bar-seg:last-child { border-radius: 0 4px 4px 0; }
+  .bmi-needle { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2.5px solid var(--navy3); box-shadow: 0 0 0 2px rgba(255,255,255,0.25); z-index: 2; }
+  .bmi-scale { display: flex; justify-content: space-between; font-size: 0.58rem; color: rgba(255,255,255,0.28); padding: 0 1px; }
+  .bmi-target-note { margin-top: 10px; font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+  .bmi-target-note strong { color: var(--gold); font-weight: 600; }
+
+  /* ── INSIGHT CARD ─────────────────────────────────── */
+  .insight-layout { display: flex; gap: 1rem; align-items: flex-start; }
+  .insight-content { flex: 1; min-width: 0; }
+  .insight-icon2 { font-size: 1.5rem; margin-bottom: 6px; }
+  .insight-eyebrow2 { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold-hover); margin-bottom: 6px; }
+  .insight-headline2 { font-family: 'Clash Grotesk', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--navy); line-height: 1.3; margin-bottom: 8px; }
+  .insight-body2 { font-size: 0.83rem; color: var(--navy-light); line-height: 1.72; }
+  .insight-stat { flex-shrink: 0; background: var(--navy); border-radius: 10px; padding: 14px 12px; text-align: center; min-width: 90px; max-width: 110px; }
+  .insight-stat-val { font-family: 'Clash Grotesk', sans-serif; font-size: 1.9rem; font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: 5px; }
+  .insight-stat-label { font-size: 0.64rem; color: rgba(255,255,255,0.6); line-height: 1.45; }
+  .insight-funfact { display: flex; align-items: flex-start; gap: 8px; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--gold-border); font-size: 0.81rem; color: var(--navy-light); line-height: 1.65; }
+  .funfact-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── PRIZE CARD ───────────────────────────────────── */
+  .prize2-inner { text-align: center; }
+  .prize2-icon { font-size: 1.75rem; margin-bottom: 8px; }
+  .prize2-eyebrow { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold); margin-bottom: 8px; }
+  .prize2-body { font-size: 0.84rem; color: rgba(255,255,255,0.8); line-height: 1.7; }
+
+  @media (max-width: 520px) {
+    .results-bento { grid-template-columns: 1fr; }
+    .bento-full { grid-column: 1; }
+    .insight-layout { flex-direction: column; }
+    .insight-stat { max-width: 100%; width: 100%; }
+  }
 </style>
 </head>
 <body>
@@ -393,6 +447,34 @@ function buildSummaryText() {
 
 let aiInsightResult = null;
 
+function parseMeasurement(str) {
+  if (!str) return null;
+  const m = str.match(/(\d+\.?\d*)/);
+  return m ? parseFloat(m[1]) : null;
+}
+
+function calcBMIData() {
+  const w = parseMeasurement(answers['weight']);
+  const h = parseMeasurement(answers['height']);
+  if (!w || !h || h < 50 || h > 280 || w < 20 || w > 400) return null;
+  const hm = h > 3 ? h / 100 : h;
+  const bmi = Math.round((w / (hm * hm)) * 10) / 10;
+  const cats = [
+    { max: 18.5, label: 'Underweight',   color: '#60a5fa' },
+    { max: 25,   label: 'Healthy weight', color: '#4ade80' },
+    { max: 30,   label: 'Overweight',    color: '#fbbf24' },
+    { max: 999,  label: 'Obese',         color: '#f87171' },
+  ];
+  const cat = cats.find(c => bmi < c.max) || cats[3];
+  const barPct = Math.min(97, Math.max(3, ((bmi - 15) / 25) * 100));
+  let targetBMI = null;
+  if (selectedGoalPath === 'weight_goal' && answers['w_target']) {
+    const tw = parseMeasurement(answers['w_target']);
+    if (tw) targetBMI = Math.round((tw / (hm * hm)) * 10) / 10;
+  }
+  return { bmi, cat, barPct, targetBMI };
+}
+
 async function submitAndShowResults() {
   const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
@@ -452,39 +534,88 @@ function showResultsScreen() {
   const committed = answers['commit'] === 'yes';
   const insight = aiInsightResult || {
     icon: '🎯', eyebrow: 'Your goal', headline: 'Every goal here moves the needle',
-    body: 'Consistent effort over the year produces real, lasting change, whatever you\'re working toward.'
+    body: "Consistent effort over 7 months produces real, lasting change — whatever you're working toward.",
   };
   const prize = getPrizeTeaser();
+  const bmiData = calcBMIData();
+
+  const bmiHTML = bmiData ? `
+    <div class="bento-card bento-dark">
+      <div class="bento-eyebrow">Your BMI</div>
+      <div class="bmi-num">${bmiData.bmi}</div>
+      <div class="bmi-cat" style="background:${bmiData.cat.color}22;color:${bmiData.cat.color};border:1px solid ${bmiData.cat.color}55">${bmiData.cat.label}</div>
+      <div class="bmi-bar-track">
+        <div class="bmi-bar-segs">
+          <div class="bmi-bar-seg" style="width:14%;background:#93c5fd"></div>
+          <div class="bmi-bar-seg" style="width:26%;background:#4ade80"></div>
+          <div class="bmi-bar-seg" style="width:20%;background:#fbbf24"></div>
+          <div class="bmi-bar-seg" style="width:40%;background:#f87171"></div>
+        </div>
+        <div class="bmi-needle" style="left:${bmiData.barPct}%"></div>
+      </div>
+      <div class="bmi-scale"><span>15</span><span>18.5</span><span>25</span><span>30</span><span>40</span></div>
+      ${bmiData.targetBMI ? `<div class="bmi-target-note">Target BMI: <strong>${bmiData.targetBMI}</strong></div>` : ''}
+    </div>` : '';
+
+  const goalHTML = `
+    <div class="bento-card bento-dark ${!bmiData ? 'bento-full' : ''}">
+      <div class="bento-eyebrow">${getGoalPathLabel()} goal</div>
+      <div class="bento-goal-title">${summary.title}</div>
+      <div class="bento-rows">
+        ${summary.rows.map(([l,v]) => `
+          <div class="bento-row">
+            <span class="bento-row-label">${l}</span>
+            <span class="bento-row-val">${v}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  const insightHTML = `
+    <div class="bento-card bento-light bento-full">
+      <div class="insight-layout">
+        <div class="insight-content">
+          <div class="insight-icon2">${insight.icon}</div>
+          <div class="insight-eyebrow2">${insight.eyebrow}</div>
+          <div class="insight-headline2">${insight.headline}</div>
+          <div class="insight-body2">${insight.body}</div>
+        </div>
+        ${insight.key_stat ? `
+        <div class="insight-stat">
+          <div class="insight-stat-val">${insight.key_stat.value}</div>
+          <div class="insight-stat-label">${insight.key_stat.label}</div>
+        </div>` : ''}
+      </div>
+      ${insight.fun_fact ? `
+      <div class="insight-funfact">
+        <span class="funfact-icon">💡</span>
+        <span>${insight.fun_fact}</span>
+      </div>` : ''}
+    </div>`;
+
+  const prizeHTML = committed ? `
+    <div class="bento-card bento-dark bento-full">
+      <div class="prize2-inner">
+        <div class="prize2-icon">${prize.icon}</div>
+        <div class="prize2-eyebrow">One more thing</div>
+        <div class="prize2-body">${prize.text}</div>
+      </div>
+    </div>` : '';
 
   document.getElementById('slide-results').innerHTML = `
     <div class="results-header">
       <div class="slide-tag">Locked in</div>
       <h2 class="slide-title">You're all set,<br><em>${userName}.</em></h2>
-      <p class="slide-subtitle">${committed ? 'Your goal is confirmed. Your squad and monthly plan are coming your way on WhatsApp.' : 'No worries, your info is saved. You can join anytime by reaching out.'}</p>
+      <p class="slide-subtitle">${committed
+        ? 'Your goal is confirmed. Your squad and monthly plan are coming your way on WhatsApp.'
+        : "No worries, your info is saved. You can join anytime by reaching out."}</p>
     </div>
-    <div class="summary-card">
-      <div class="summary-eyebrow">${getGoalPathLabel()} goal</div>
-      <div class="summary-goal">${summary.title}</div>
-      ${summary.rows.map(([l,v]) => `
-        <div class="summary-row">
-          <span class="summary-row-label">${l}</span>
-          <span class="summary-row-val">${v}</span>
-        </div>`).join('')}
+    <div class="results-bento">
+      ${bmiHTML}${goalHTML}${insightHTML}${prizeHTML}
     </div>
-    <div class="insight-card">
-      <div class="insight-icon">${insight.icon}</div>
-      <div class="insight-eyebrow">${insight.eyebrow}</div>
-      <div class="insight-headline">${insight.headline}</div>
-      <div class="insight-body">${insight.body}</div>
-    </div>
-    ${committed ? `
-    <div class="prize-card">
-      <div class="prize-icon">${prize.icon}</div>
-      <div class="prize-eyebrow">One more thing</div>
-      <div class="prize-body">${prize.text}</div>
-    </div>` : ''}
     <div class="thankyou">
-      <p>${committed ? 'Welcome to FITYUGA 2026. Your squad will reach out shortly with everything you need to get started.' : 'Thanks for your honesty. The door is always open, just message us whenever you\'re ready.'}</p>
+      <p>${committed
+        ? 'Welcome to FITYUGA 2026. Your squad will reach out shortly with everything you need to get started.'
+        : "Thanks for your honesty. The door is always open, just message us whenever you're ready."}</p>
     </div>`;
 
   showSlide('slide-results');

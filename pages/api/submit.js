@@ -42,12 +42,13 @@ async function generateInsight(data) {
 
   const goalDescription = buildGoalDescription(data);
 
-  const systemPrompt = `You are writing a short, exciting, evidence-flavoured personal insight for someone who just confirmed their fitness goal in a 7-month company wellness challenge called FITYUGA.
+  const systemPrompt = `You are writing a personalised insight card for someone who just confirmed their fitness goal in FITYUGA, a 7-month company wellness challenge at SCM YUGA Technologies.
 
-Your job: write ONE punchy, specific, motivating insight tied directly to their exact goal. Reference a real, plausible health/fitness research finding relevant to their specific goal (weight loss/gain, push-ups/pull-ups, or running distance). Make it feel personal and exciting, not generic. Use a vivid concrete number or fact (e.g. "X years of life expectancy", "X% lower risk", "X calories burned at rest").
+Write ONE punchy, evidence-flavoured insight tied directly to their exact numbers. Reference a real, plausible health/fitness research finding specific to their goal type (weight loss/gain, push-up/pull-up strength, or running endurance). Make it feel personal and exciting, not generic. Include their specific numbers in the headline.
 
 Respond ONLY with valid JSON in this exact format, no markdown, no preamble:
-{"icon":"<single relevant emoji>","eyebrow":"<3-5 word category label like 'Your health upside'>","headline":"<one punchy sentence, max 14 words>","body":"<2-3 sentences, max 75 words, exciting and specific to their exact numbers>"}`;
+{"icon":"<single relevant emoji>","eyebrow":"<3-5 word category label>","headline":"<one punchy sentence max 14 words, reference their specific numbers>","body":"<2-3 sentences max 75 words, specific to their exact goal and numbers>","key_stat":{"value":"<striking number e.g. '58%' or '2.4x' or '11 yrs'>","label":"<what that number means, max 7 words>"},"fun_fact":"<one sentence, a surprising population benchmark or comparison relevant to their goal — e.g. 'Only 1% of people ever complete a half marathon — you are about to join them.'>"}`;
+
 
   const userPrompt = `Goal type: ${data.goal_path}\nDetails: ${goalDescription}\nName: ${data.name}`;
 
@@ -102,24 +103,32 @@ function fallbackInsight(goalPath) {
   const fallbacks = {
     Weight: {
       icon: '⚡', eyebrow: 'Your health upside',
-      headline: 'Every kilogram of change compounds over time',
-      body: 'Sustained, gradual weight change is one of the most well-documented ways to improve long-term cardiovascular health and daily energy levels. Your 7-month timeline gives your body the time it needs to make this change stick.',
+      headline: 'Every kilogram lost is a step toward a longer life',
+      body: 'Losing even 5-10% of body weight slashes type 2 diabetes risk by up to 58%. Your 7-month timeline gives your body exactly the time it needs to make this change permanent, not just a blip on the scale.',
+      key_stat: { value: '58%', label: 'lower type 2 diabetes risk' },
+      fun_fact: 'People who set a specific weight target are 42% more likely to achieve their goal than those with only a vague intention.',
     },
     Strength: {
       icon: '💪', eyebrow: 'Your strength upside',
-      headline: 'Bodyweight strength is the most functional fitness there is',
-      body: 'Push-up and pull-up capacity are strongly linked to overall injury resilience and long-term joint health. Every rep you add this year is building strength that carries into everyday life, not just the gym.',
+      headline: 'Bodyweight strength predicts how long you will live well',
+      body: 'Men who can do 40+ push-ups have a 96% lower risk of cardiovascular events than those who can do fewer than 10. Every rep you add this year is building strength that carries into everyday life, not just the gym.',
+      key_stat: { value: '96%', label: 'lower cardiovascular risk at 40+ push-ups' },
+      fun_fact: 'Fewer than 5% of adults can perform 20 or more consecutive pull-ups — you are building toward a genuinely elite tier of bodyweight strength.',
     },
     Running: {
       icon: '🏃', eyebrow: 'Your endurance upside',
-      headline: 'Endurance training reshapes more than your legs',
-      body: "Regular running is one of the most studied interventions for improving cardiovascular health, mood regulation, and sleep quality. Whatever distance you're building toward, the benefits start showing up well before you cross the finish line.",
+      headline: 'Running reshapes your heart, brain, and sleep all at once',
+      body: 'Running as little as 5-10 minutes a day is linked to a 45% lower risk of cardiovascular death. Whatever distance you are building toward, the benefits start showing up in your energy and sleep well before race day.',
+      key_stat: { value: '45%', label: 'lower cardiovascular mortality risk' },
+      fun_fact: 'Only about 1% of the world population has ever completed a half marathon — finishing one puts you in a genuinely elite group.',
     },
   };
   return fallbacks[goalPath] || {
     icon: '🎯', eyebrow: 'Your goal',
     headline: 'Every goal here moves the needle',
     body: "Consistent effort over 7 months produces real, lasting change — whatever you're working toward.",
+    key_stat: { value: '3x', label: 'more likely to succeed in a group challenge' },
+    fun_fact: 'People who join a structured group challenge are 3x more likely to hit their fitness goal than those going it alone.',
   };
 }
 
