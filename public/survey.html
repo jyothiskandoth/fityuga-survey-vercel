@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FITYUGA: Goal Confirmation</title>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@400,500,600,700&f[]=general-sans@300,400,500,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f7f6f2; --card: #ffffff;
+    --navy: #1a2535; --navy3: #0f1825; --navy-mid: #2d3a4a; --navy-light: #4a5568;
+    --gold: #f5c200; --gold-hover: #e6b400; --gold-dim: rgba(245,194,0,0.10); --gold-border: rgba(245,194,0,0.35);
+    --text: #1a2535; --muted: #6b7280; --muted2: #9ca3af;
+    --border: #e5e7eb; --border-mid: #d1d5db;
+    --green: #16a34a; --divider: #f3f4f6;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); font-family: 'General Sans', sans-serif; color: var(--text); min-height: 100vh; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased; }
+  .progress-wrap { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: var(--border); z-index: 200; }
+  .progress-fill { height: 100%; background: var(--gold); transition: width 0.5s cubic-bezier(.4,0,.2,1); width: 0%; }
+  .site-header { position: fixed; top: 3px; left: 0; right: 0; padding: 0 2.5rem; height: 60px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); z-index: 100; }
+  .logo-wordmark { font-family: 'Clash Grotesk', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--navy); letter-spacing: 0.06em; }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+  .section-pill { font-size: 0.68rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 20px; background: var(--gold-dim); color: var(--gold-hover); border: 1px solid rgba(245,194,0,0.2); }
+  .step-counter { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  main { margin-top: 63px; flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 3rem 1.25rem 6rem; }
+  .slide { display: none; width: 100%; max-width: 600px; }
+  .slide.active { display: block; animation: slideIn 0.35s cubic-bezier(.4,0,.2,1) both; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .slide-tag { display: inline-flex; align-items: center; gap: 8px; font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin-bottom: 1rem; }
+  .slide-tag::before { content: ''; display: inline-block; width: 18px; height: 2px; background: var(--gold); }
+  .slide-title { font-family: 'Clash Grotesk', sans-serif; font-size: clamp(1.3rem, 3.5vw, 1.95rem); font-weight: 500; line-height: 1.18; color: var(--navy); margin-bottom: 0.65rem; letter-spacing: -0.01em; }
+  .slide-title em { font-style: italic; color: var(--gold-hover); font-family: 'Clash Grotesk', sans-serif; }
+  .slide-subtitle { font-size: 0.87rem; color: var(--muted); line-height: 1.72; margin-bottom: 0.65rem; }
+  .slide-hint { font-size: 0.75rem; color: var(--muted2); font-style: italic; margin-bottom: 1.75rem; }
+  .hero-slide { padding: 0.5rem 0 0; }
+  .hero-badge { display: inline-block; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; padding: 4px 12px; background: var(--gold); color: var(--navy); border-radius: 4px; margin-bottom: 1.5rem; }
+  .hero-stats { display: flex; gap: 10px; margin: 1.5rem 0 2rem; flex-wrap: wrap; }
+  .hero-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; flex: 1; min-width: 110px; }
+  .hero-stat-num { font-family: 'Clash Grotesk', sans-serif; font-size: 1.3rem; font-weight: 600; color: var(--navy); line-height: 1; }
+  .hero-stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; }
+  .time-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); margin-bottom: 1.5rem; }
+  .time-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+  .hero-divider { width: 48px; height: 3px; background: var(--gold); border-radius: 2px; margin-top: 2.5rem; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 24px; background: var(--gold); color: var(--navy); font-family: 'General Sans', sans-serif; font-size: 0.84rem; font-weight: 500; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 0.01em; transition: background 0.15s, transform 0.12s, box-shadow 0.15s; }
+  .btn:hover { background: var(--gold-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(245,194,0,0.3); }
+  .btn:active { transform: translateY(0); box-shadow: none; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-ghost { display: inline-flex; align-items: center; gap: 6px; padding: 10px 0; background: none; color: var(--muted); font-family: 'General Sans', sans-serif; font-size: 0.84rem; border: none; cursor: pointer; transition: color 0.15s; }
+  .btn-ghost:hover { color: var(--navy); }
+  .btn-row { display: flex; align-items: center; justify-content: space-between; margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1.5px solid var(--divider); }
+  .text-field { width: 100%; padding: 13px 16px; background: var(--bg); border: 1.5px solid var(--border-mid); border-radius: 6px; font-family: 'General Sans', sans-serif; font-size: 0.95rem; color: var(--navy); outline: none; transition: border-color 0.15s; margin-bottom: 1.75rem; }
+  .text-field:focus { border-color: var(--navy); }
+  .text-field::placeholder { color: var(--muted2); }
+  .options-list { display: flex; flex-direction: column; gap: 9px; margin-bottom: 1.75rem; }
+  .opt-btn { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 6px; cursor: pointer; text-align: left; font-family: 'General Sans', sans-serif; font-size: 0.82rem; font-weight: 400; color: var(--muted); line-height: 1.45; transition: all 0.14s; width: 100%; }
+  .opt-btn:hover { border-color: var(--navy); background: var(--surface); color: var(--navy); }
+  .opt-btn.selected { border-color: var(--navy); background: var(--navy); color: #ffffff; }
+  .opt-indicator { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border-mid); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.14s; }
+  .opt-btn.selected .opt-indicator { border-color: var(--gold); background: var(--gold); }
+  .opt-btn.selected .opt-indicator::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--navy); }
+  .opt-letter { font-size: 0.7rem; font-weight: 600; color: var(--muted2); width: 14px; flex-shrink: 0; text-align: center; transition: color 0.14s; }
+  .opt-btn.selected .opt-letter { color: var(--gold); }
+  .goal-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.75rem; }
+  .goal-card { display: flex; align-items: flex-start; gap: 16px; padding: 18px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; width: 100%; text-align: left; }
+  .goal-card:hover { border-color: var(--navy); background: var(--surface); }
+  .goal-card.selected { border-color: var(--navy); background: var(--navy); }
+  .goal-card-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+  .goal-card-body { flex: 1; }
+  .goal-card-title { font-family: 'Clash Grotesk', sans-serif; font-size: 0.98rem; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .goal-card.selected .goal-card-title { color: #fff; }
+  .goal-card-sub { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+  .goal-card.selected .goal-card-sub { color: rgba(255,255,255,0.6); }
+  .goal-card-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border-mid); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+  .goal-card.selected .goal-card-check { border-color: var(--gold); background: var(--gold); }
+  .goal-card.selected .goal-card-check::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--navy); }
+  .results-header { margin-bottom: 1.5rem; }
+  .summary-card { border-radius: 12px; padding: 1.75rem; margin-bottom: 1.25rem; background: var(--navy3); position: relative; overflow: hidden; }
+  .summary-card::after { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,0.05); pointer-events: none; }
+  .summary-eyebrow { font-size: 0.67rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold); margin-bottom: 8px; }
+  .summary-goal { font-family: 'Clash Grotesk', sans-serif; font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 14px; line-height: 1.25; }
+  .summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.82rem; }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row-label { color: rgba(255,255,255,0.45); }
+  .summary-row-val { color: #fff; font-weight: 500; }
+  .insight-card { border-radius: 12px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; background: linear-gradient(135deg, var(--gold-dim), rgba(245,194,0,0.03)); border: 1.5px solid var(--gold-border); position: relative; }
+  .insight-icon { font-size: 1.6rem; margin-bottom: 10px; }
+  .insight-eyebrow { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.13em; color: var(--gold-hover); margin-bottom: 8px; }
+  .insight-headline { font-family: 'Clash Grotesk', sans-serif; font-size: 1.2rem; font-weight: 600; color: var(--navy); line-height: 1.35; margin-bottom: 10px; }
+  .insight-body { font-size: 0.84rem; color: var(--navy-light); line-height: 1.7; }
+  .insight-loading { display: flex; align-items: center; gap: 10px; padding: 1rem 0; color: var(--muted); font-size: 0.82rem; }
+  .insight-spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+  .prize-card { border-radius: 12px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; background: var(--navy3); text-align: center; position: relative; overflow: hidden; }
+  .prize-card::after { content: ''; position: absolute; bottom: -50px; left: -50px; width: 180px; height: 180px; border-radius: 50%; background: rgba(245,194,0,0.06); pointer-events: none; }
+  .prize-icon { font-size: 1.75rem; margin-bottom: 10px; }
+  .prize-eyebrow { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold); margin-bottom: 10px; }
+  .prize-body { font-size: 0.86rem; color: rgba(255,255,255,0.82); line-height: 1.7; max-width: 440px; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .thankyou { text-align: center; padding: 1.5rem 0 0; border-top: 1.5px solid var(--border); }
+  .thankyou p { font-size: 0.84rem; color: var(--muted); line-height: 1.7; max-width: 420px; margin: 0 auto 1rem; }
+  .submit-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.92); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
+  .submit-overlay.show { display: flex; }
+  .submit-spinner { width: 36px; height: 36px; border: 2.5px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .submit-text { font-size: 0.88rem; color: var(--muted); font-weight: 500; }
+  .submit-error { display: none; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 6px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; font-size: 0.82rem; color: #dc2626; line-height: 1.5; }
+  .submit-error.show { display: block; }
+  .yn-row { display: flex; gap: 12px; margin-bottom: 1.75rem; }
+  .yn-btn { flex: 1; padding: 18px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); cursor: pointer; text-align: center; transition: all 0.15s; }
+  .yn-btn:hover { border-color: var(--navy); background: var(--surface); }
+  .yn-btn.selected.yes { border-color: var(--gold); background: var(--gold-dim); }
+  .yn-btn.selected.no { border-color: var(--border-mid); background: var(--surface); }
+  .yn-emoji { font-size: 1.5rem; margin-bottom: 6px; }
+  .yn-label { font-family: 'Clash Grotesk', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--navy); }
+  @media (max-width: 520px) {
+    .site-header { padding: 0 1.25rem; }
+    main { padding: 2rem 1rem 5rem; }
+    .hero-stats { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+
+<header class="site-header">
+  <div class="logo-wordmark">FITYUGA</div>
+  <div class="header-right">
+    <div class="section-pill" id="sectionPill">Goal Check-in</div>
+    <div class="step-counter">Q <span id="stepNum">—</span> / <span id="stepTotal">—</span></div>
+  </div>
+</header>
+
+<div class="submit-overlay" id="submitOverlay">
+  <div class="submit-spinner"></div>
+  <div class="submit-text">Saving your answers...</div>
+</div>
+
+<main>
+  <!-- HERO / WELCOME -->
+  <div class="slide active" id="slide-0">
+    <div class="hero-slide">
+      <div class="hero-badge">FITYUGA 2026</div>
+      <h1 class="slide-title">Time to lock in<br><em>your goal for the year.</em></h1>
+      <p class="slide-subtitle">Pick your path, set your target, and we'll build a plan made just for you. Stick with it and there's something big waiting for you at the finish line.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-num">3</div><div class="hero-stat-label">Paths to choose</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">2 min</div><div class="hero-stat-label">To complete</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">1</div><div class="hero-stat-label">Personalised report</div></div>
+      </div>
+      <div class="time-badge"><span class="dot"></span> At the end, you'll get a personal insight built just for your goal</div>
+      <button class="btn" onclick="startSurvey()">
+        Let's lock it in
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="hero-divider"></div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div class="slide" id="slide-questions">
+    <div class="slide-tag" id="qSection"></div>
+    <h2 class="slide-title" id="qText"></h2>
+    <p class="slide-hint" id="qHint"></p>
+    <div id="qInputArea"></div>
+    <div class="submit-error" id="submitError"></div>
+    <div class="btn-row">
+      <button class="btn-ghost" id="backBtn" onclick="prevQ()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+      </button>
+      <button class="btn" id="nextBtn" onclick="nextQ()" disabled>
+        Continue
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="slide" id="slide-results"></div>
+</main>
+
+<script>
+const LETTERS = ['A','B','C','D','E'];
+
+// ── COMMON SECTION (everyone) ──────────────────────────────────────
+const commonQuestions = [
+  { id:'name', section:'Starting with you', text:'What\'s your name?', hint:'First name is fine.', type:'text', placeholder:'Your first name…' },
+  { id:'weight', section:'A quick baseline', text:'What\'s your current weight today?', hint:'Be honest, this is your starting line, not a judgement.', type:'text', placeholder:'e.g. 78 kg' },
+  { id:'height', section:'A quick baseline', text:'What\'s your height?', hint:'Just for context.', type:'text', placeholder:'e.g. 172 cm' },
+  { id:'activity', section:'A quick baseline', text:'How active have you been in a typical week recently?', hint:'Think about the last few weeks honestly.', type:'options',
+    opts:['Rarely or never, mostly sedentary','Once or twice a month','About once a week','2–3 times a week fairly consistently','Almost every day, it\'s part of my routine'] },
+  { id:'injury', section:'A quick baseline', text:'Any current injury or medical limitation we should know about?', hint:'Optional, type "none" if not applicable.', type:'text', placeholder:'e.g. None, or describe briefly' },
+  { id:'goal_type', section:'Your goal', text:'What do you want to achieve this year?', hint:'Pick the one that feels most real to you right now.', type:'goalcards',
+    opts:[
+      { key:'weight_goal', icon:'⚖️', title:'Lose weight / gain weight', sub:'Body recomposition by the scale, fat loss or lean mass gain' },
+      { key:'strength_goal', icon:'💪', title:'Get stronger', sub:'Push-up or pull-up based, build real bodyweight strength' },
+      { key:'running_goal', icon:'🏃', title:'Run a distance or a marathon', sub:'5K, 10K, half marathon, or a specific race' },
+    ]},
+];
+
+// ── PATH A: WEIGHT ──────────────────────────────────────────────────
+const weightQuestions = [
+  { id:'w_direction', section:'Your weight goal', text:'Are you looking to lose weight or gain weight?', hint:'Be specific, this changes how we calculate your progress.', type:'options',
+    opts:['Lose weight','Gain weight (lean mass)'] },
+  { id:'w_target', section:'Your weight goal', text:'What\'s your target weight by the end of the year?', hint:'Pick a number that feels ambitious but realistic.', type:'text', placeholder:'e.g. 68 kg' },
+  { id:'w_deadline', section:'Your weight goal', text:'Any specific deadline in mind, or should we use the standard end of year target?', hint:'Type a date or just say "standard".', type:'text', placeholder:'e.g. Standard, or a specific date' },
+];
+
+// ── PATH B: STRENGTH ─────────────────────────────────────────────────
+const strengthQuestions = [
+  { id:'s_pushups', section:'Your strength goal', text:'Right now, what\'s your honest max push-ups in one go?', hint:'Full range of motion, chest to floor.', type:'options',
+    opts:['0–3, it\'s a real struggle','4–10','11–20','21–40','More than 40'] },
+  { id:'s_pullups', section:'Your strength goal', text:'And your honest max pull-ups right now?', hint:'If you\'ve never tried, pick the first option.', type:'options',
+    opts:['Zero, haven\'t been able to do one','1–3','4–7','8–12','More than 12'] },
+  { id:'s_focus', section:'Your strength goal', text:'Which is your main goal?', hint:'You can train both, but pick your primary target.', type:'options',
+    opts:['Push-ups','Pull-ups','Both equally'] },
+  { id:'s_target', section:'Your strength goal', text:'What\'s your target number by the end of the year?', hint:'Be ambitious, this sets your difficulty tier.', type:'text', placeholder:'e.g. 30 push-ups, or 10 pull-ups' },
+];
+
+// ── PATH C: RUNNING ──────────────────────────────────────────────────
+const runningQuestions = [
+  { id:'r_longest', section:'Your running goal', text:'Right now, what\'s your longest continuous run without stopping?', hint:'Honest estimate, this is your starting point.', type:'options',
+    opts:['Under 1 km, I tire quickly','Around 1–3 km with effort','About 5 km','5–10 km comfortably','More than 10 km, I run regularly'] },
+  { id:'r_target_type', section:'Your running goal', text:'What\'s your goal?', hint:'Pick the distance or event you\'re aiming for.', type:'options',
+    opts:['Complete a 5K','Complete a 10K','Complete a half marathon (21K)','A specific race or event'] },
+  { id:'r_event', section:'Your running goal', text:'If there\'s a specific race or event, name it (and the date if you know it).', hint:'Optional, leave blank if it\'s just a distance goal.', type:'text', placeholder:'e.g. Bangalore 10K, October 2026' },
+];
+
+// ── FINAL SECTION (everyone) ──────────────────────────────────────────
+const finalQuestions = [
+  { id:'commit', section:'One last thing', text:'Let\'s do this as a challenge, you in?', hint:'Squads, friendly competition, and something big waiting for whoever crosses the line.', type:'yesno' },
+];
+
+let questions = [...commonQuestions];
+let cur = 0;
+let answers = {};
+let userName = '';
+let selectedGoalPath = null;
+let pendingSelection = null; // holds the in-progress selection until Continue is pressed
+
+function showSlide(id) {
+  document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.remove('active'); void el.offsetWidth; el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startSurvey() {
+  cur = 0;
+  showSlide('slide-questions');
+  renderQ();
+}
+
+function renderQ() {
+  const q = questions[cur];
+  const pct = Math.round((cur / questions.length) * 90);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('stepNum').textContent = cur + 1;
+  document.getElementById('stepTotal').textContent = questions.length;
+  document.getElementById('sectionPill').textContent = q.section;
+  document.getElementById('qSection').textContent = q.section;
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('qHint').textContent = q.hint;
+  document.getElementById('backBtn').style.visibility = cur === 0 ? 'hidden' : 'visible';
+  document.getElementById('nextBtn').disabled = answers[q.id] === undefined;
+  document.getElementById('submitError').classList.remove('show');
+  pendingSelection = null;
+
+  const area = document.getElementById('qInputArea');
+  area.innerHTML = '';
+
+  if (q.type === 'text') {
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'text-field'; inp.placeholder = q.placeholder;
+    inp.value = answers[q.id] || '';
+    inp.oninput = () => { answers[q.id] = inp.value.trim(); document.getElementById('nextBtn').disabled = inp.value.trim().length < 1; };
+    inp.onkeydown = e => { if (e.key === 'Enter' && inp.value.trim()) nextQ(); };
+    area.appendChild(inp);
+    document.getElementById('nextBtn').disabled = !(answers[q.id] && answers[q.id].length > 0);
+    setTimeout(() => inp.focus(), 80);
+
+  } else if (q.type === 'options') {
+    const list = document.createElement('div');
+    list.className = 'options-list';
+    q.opts.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn' + (answers[q.id] === i ? ' selected' : '');
+      btn.innerHTML = `<span class="opt-letter">${LETTERS[i]}</span><div class="opt-indicator"></div><span>${opt}</span>`;
+      btn.onclick = () => {
+        answers[q.id] = i;
+        list.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('nextBtn').disabled = false;
+      };
+      list.appendChild(btn);
+    });
+    area.appendChild(list);
+
+  } else if (q.type === 'goalcards') {
+    const list = document.createElement('div');
+    list.className = 'goal-cards';
+    q.opts.forEach(opt => {
+      const card = document.createElement('button');
+      card.className = 'goal-card' + (answers[q.id] === opt.key ? ' selected' : '');
+      card.innerHTML = `
+        <div class="goal-card-icon">${opt.icon}</div>
+        <div class="goal-card-body">
+          <div class="goal-card-title">${opt.title}</div>
+          <div class="goal-card-sub">${opt.sub}</div>
+        </div>
+        <div class="goal-card-check"></div>`;
+      card.onclick = () => {
+        answers[q.id] = opt.key;
+        selectedGoalPath = opt.key;
+        list.querySelectorAll('.goal-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        document.getElementById('nextBtn').disabled = false;
+      };
+      list.appendChild(card);
+    });
+    area.appendChild(list);
+
+  } else if (q.type === 'yesno') {
+    const row = document.createElement('div');
+    row.className = 'yn-row';
+    const yesBtn = document.createElement('button');
+    yesBtn.className = 'yn-btn yes' + (answers[q.id] === 'yes' ? ' selected' : '');
+    yesBtn.innerHTML = `<div class="yn-emoji">💪</div><div class="yn-label">Yes, let's go</div>`;
+    yesBtn.onclick = () => { answers[q.id] = 'yes'; row.querySelectorAll('.yn-btn').forEach(b=>b.classList.remove('selected')); yesBtn.classList.add('selected'); document.getElementById('nextBtn').disabled = false; };
+    const noBtn = document.createElement('button');
+    noBtn.className = 'yn-btn no' + (answers[q.id] === 'no' ? ' selected' : '');
+    noBtn.innerHTML = `<div class="yn-emoji">🤔</div><div class="yn-label">Not this time</div>`;
+    noBtn.onclick = () => { answers[q.id] = 'no'; row.querySelectorAll('.yn-btn').forEach(b=>b.classList.remove('selected')); noBtn.classList.add('selected'); document.getElementById('nextBtn').disabled = false; };
+    row.appendChild(yesBtn); row.appendChild(noBtn);
+    area.appendChild(row);
+  }
+}
+
+function nextQ() {
+  const q = questions[cur];
+  if (answers[q.id] === undefined) return; // guard: must have a selection
+  if (q.id === 'name') userName = answers['name'] || 'there';
+
+  // BRANCH LOGIC: the moment goal_type is confirmed via Continue, splice in the right path
+  if (q.id === 'goal_type') {
+    let pathQs = [];
+    if (selectedGoalPath === 'weight_goal') pathQs = weightQuestions;
+    else if (selectedGoalPath === 'strength_goal') pathQs = strengthQuestions;
+    else if (selectedGoalPath === 'running_goal') pathQs = runningQuestions;
+    // Rebuild full question list: everything up to and including current, then path questions, then final
+    questions = [...questions.slice(0, cur + 1), ...pathQs, ...finalQuestions];
+  }
+
+  if (cur < questions.length - 1) { cur++; renderQ(); }
+  else submitAndShowResults();
+}
+
+function prevQ() { if (cur > 0) { cur--; renderQ(); } }
+
+function getGoalPathLabel() {
+  const map = { weight_goal:'Weight', strength_goal:'Strength', running_goal:'Running' };
+  return map[selectedGoalPath] || '—';
+}
+
+function buildSummaryText() {
+  if (selectedGoalPath === 'weight_goal') {
+    const dir = answers['w_direction'] === 0 ? 'Lose weight' : 'Gain weight';
+    return { title: `${dir} → ${answers['w_target'] || '—'}`, rows: [
+      ['Current weight', answers['weight'] || '—'],
+      ['Target weight', answers['w_target'] || '—'],
+      ['Timeline', answers['w_deadline'] || 'Standard (end of year)'],
+    ]};
+  }
+  if (selectedGoalPath === 'strength_goal') {
+    const focusMap = ['Push-ups','Pull-ups','Both'];
+    return { title: `${focusMap[answers['s_focus']] || 'Strength'} → ${answers['s_target'] || '—'}`, rows: [
+      ['Current push-ups', strengthQuestions[0].opts[answers['s_pushups']] || '—'],
+      ['Current pull-ups', strengthQuestions[1].opts[answers['s_pullups']] || '—'],
+      ['Target', answers['s_target'] || '—'],
+    ]};
+  }
+  if (selectedGoalPath === 'running_goal') {
+    return { title: runningQuestions[1].opts[answers['r_target_type']] || 'Running goal', rows: [
+      ['Current longest run', runningQuestions[0].opts[answers['r_longest']] || '—'],
+      ['Goal', runningQuestions[1].opts[answers['r_target_type']] || '—'],
+      ['Event', answers['r_event'] || 'No specific event'],
+    ]};
+  }
+  return { title: '—', rows: [] };
+}
+
+let aiInsightResult = null;
+
+async function submitAndShowResults() {
+  const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+  const payload = {
+    timestamp,
+    name: answers['name'] || '',
+    weight: answers['weight'] || '',
+    height: answers['height'] || '',
+    activity_text: commonQuestions.find(q=>q.id==='activity').opts[answers['activity']] || '',
+    injury: answers['injury'] || '',
+    goal_path: getGoalPathLabel(),
+    w_direction: answers['w_direction'] !== undefined ? (answers['w_direction']===0?'Lose weight':'Gain weight') : '',
+    w_target: answers['w_target'] || '',
+    w_deadline: answers['w_deadline'] || '',
+    s_pushups_text: answers['s_pushups'] !== undefined ? strengthQuestions[0].opts[answers['s_pushups']] : '',
+    s_pullups_text: answers['s_pullups'] !== undefined ? strengthQuestions[1].opts[answers['s_pullups']] : '',
+    s_focus_text: answers['s_focus'] !== undefined ? ['Push-ups','Pull-ups','Both'][answers['s_focus']] : '',
+    s_target: answers['s_target'] || '',
+    r_longest_text: answers['r_longest'] !== undefined ? runningQuestions[0].opts[answers['r_longest']] : '',
+    r_target_text: answers['r_target_type'] !== undefined ? runningQuestions[1].opts[answers['r_target_type']] : '',
+    r_event: answers['r_event'] || '',
+    commit: answers['commit'] || '',
+  };
+
+  document.getElementById('submitOverlay').querySelector('.submit-text').textContent = 'Generating your personal insight...';
+  document.getElementById('submitOverlay').classList.add('show');
+
+  try {
+    const response = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+    if (result && result.insight) aiInsightResult = result.insight;
+  } catch (err) {
+    console.error('Submission failed:', err);
+    // aiInsightResult stays null, showResultsScreen() falls back gracefully
+  }
+
+  document.getElementById('submitOverlay').classList.remove('show');
+  showResultsScreen();
+}
+
+function getPrizeTeaser() {
+  const teasers = {
+    weight_goal: { icon: '🏆', text: 'Hit your target and there\'s a reward built specifically for someone who transforms their body this year. Big enough that you\'ll want to see it through.' },
+    strength_goal: { icon: '🏆', text: 'Reach your number and there\'s a reward waiting that\'s built specifically for the strongest transformation of the year. Worth every rep.' },
+    running_goal: { icon: '🏆', text: 'Cross your finish line and there\'s a reward waiting that\'s built specifically for the runner who goes the distance this year. Worth every kilometre.' },
+  };
+  return teasers[selectedGoalPath] || { icon: '🏆', text: 'Hit your goal and there\'s something big waiting at the finish line, built just for you.' };
+}
+
+function showResultsScreen() {
+  document.getElementById('progressFill').style.width = '100%';
+  const summary = buildSummaryText();
+  const committed = answers['commit'] === 'yes';
+  const insight = aiInsightResult || {
+    icon: '🎯', eyebrow: 'Your goal', headline: 'Every goal here moves the needle',
+    body: 'Consistent effort over the year produces real, lasting change, whatever you\'re working toward.'
+  };
+  const prize = getPrizeTeaser();
+
+  document.getElementById('slide-results').innerHTML = `
+    <div class="results-header">
+      <div class="slide-tag">Locked in</div>
+      <h2 class="slide-title">You're all set,<br><em>${userName}.</em></h2>
+      <p class="slide-subtitle">${committed ? 'Your goal is confirmed. Your squad and monthly plan are coming your way on WhatsApp.' : 'No worries, your info is saved. You can join anytime by reaching out.'}</p>
+    </div>
+    <div class="summary-card">
+      <div class="summary-eyebrow">${getGoalPathLabel()} goal</div>
+      <div class="summary-goal">${summary.title}</div>
+      ${summary.rows.map(([l,v]) => `
+        <div class="summary-row">
+          <span class="summary-row-label">${l}</span>
+          <span class="summary-row-val">${v}</span>
+        </div>`).join('')}
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">${insight.icon}</div>
+      <div class="insight-eyebrow">${insight.eyebrow}</div>
+      <div class="insight-headline">${insight.headline}</div>
+      <div class="insight-body">${insight.body}</div>
+    </div>
+    ${committed ? `
+    <div class="prize-card">
+      <div class="prize-icon">${prize.icon}</div>
+      <div class="prize-eyebrow">One more thing</div>
+      <div class="prize-body">${prize.text}</div>
+    </div>` : ''}
+    <div class="thankyou">
+      <p>${committed ? 'Welcome to FITYUGA 2026. Your squad will reach out shortly with everything you need to get started.' : 'Thanks for your honesty. The door is always open, just message us whenever you\'re ready.'}</p>
+    </div>`;
+
+  showSlide('slide-results');
+}
+</script>
+</body>
+</html>
